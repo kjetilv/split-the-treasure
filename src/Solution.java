@@ -1,19 +1,19 @@
 import java.util.ArrayList;
 import java.util.List;
 
-record Solution(int pirates, int targetValue, Gems loot, List<Gems> parts) {
+record Solution(int pirates, int shareValue, Gems loot, List<Gems> lootShare) {
 
-    Solution(int targetValue, int pirates, List<Gems> parts) {
-        this(pirates, targetValue, null, parts);
+    Solution(int pirates, int share, List<Gems> parts) {
+        this(pirates, share, null, parts);
     }
 
-    Solution add(Gems part) {
-        List<Gems> copy = new ArrayList<>(parts);
-        copy.add(part);
-        return new Solution(targetValue, pirates, copy);
+    Solution with(Gems share) {
+        List<Gems> copy = new ArrayList<>(lootShare);
+        copy.add(share);
+        return new Solution(pirates, shareValue, copy);
     }
 
     Solution forLoot(Gems loot) {
-        return new Solution(targetValue, pirates, loot, parts);
+        return new Solution(pirates, shareValue, loot, lootShare);
     }
 }

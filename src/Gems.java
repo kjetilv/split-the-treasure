@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -9,23 +8,30 @@ import java.util.stream.Stream;
 record Gems(List<Gem> gems) {
 
     Gems(int... values) {
-        this(entries(values));
+        this(Arrays.stream(values).mapToObj(Gem::new).sorted().toList());
     }
 
-    List<Solution> solutions(int pirates) {
+    Stream<Solution> solutions(int pirates) {
         if (value() % pirates != 0) {
             throw new IllegalStateException(this.value() + "/" + pirates + ", remaining " + this.value() % pirates);
         }
-        int targetValue = value() / pirates;
-        return solutions(pirates, targetValue).stream()
+        return solutions(pirates, value() / pirates)
             .distinct()
             .map(solution ->
-                solution.forLoot(this))
-            .toList();
+                solution.forLoot(this));
     }
 
-    private List<Gems> powerSet(int value) {
-        return powerSet(value, new Gems()).toList();
+    private Stream<Solution> solutions(int pirates, int shareValue) {
+        if (gems.isEmpty()) {
+            return Stream.empty();
+        }
+        if (value() == shareValue) {
+            return Stream.of(
+                new Solution(pirates, shareValue, Collections.singletonList(this)));
+        }
+        return powerSet(new Gems(), shareValue).flatMap(share ->
+            gemsAfterRemoving(share).solutions(pirates, shareValue).map(solution ->
+                solution.with(share)));
     }
 
     private Gems add(Gem gem) {
@@ -44,53 +50,28 @@ record Gems(List<Gem> gems) {
         return gems().stream().mapToInt(Gem::value).sum();
     }
 
-    private Stream<Gems> powerSet(int targetValue, Gems acc) {
-        List<Gem> candidates = this.gems().stream()
-            .filter(gem ->
-                gem.value() + acc.value() <= targetValue)
-            .toList();
-        return candidates
-            .stream()
+    private Stream<Gems> powerSet(Gems accumulated, int shareValue) {
+        return viableGems(shareValue, accumulated.value())
             .flatMap(gem -> {
-                Gems next = this.remove(gem);
-                Gems nextAcc = acc.add(gem);
-                return nextAcc.value() == targetValue
-                    ? Stream.of(nextAcc)
-                    : next.powerSet(targetValue, nextAcc);
+                Gems remainingGems = this.remove(gem);
+                Gems nextAccumulated = accumulated.add(gem);
+                return nextAccumulated.value() == shareValue
+                    ? Stream.of(nextAccumulated)
+                    : remainingGems.powerSet(nextAccumulated, shareValue);
             });
     }
 
-    private List<Solution> solutions(int pirates, int targetValue) {
-        if (gems.isEmpty()) {
-            return Collections.emptyList();
-        }
-        if (value() == targetValue) {
-            return Collections.singletonList(
-                new Solution(targetValue, pirates, Collections.singletonList(this)));
-        }
-        List<Gems> powerSet = powerSet(targetValue);
-        if (powerSet.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return powerSet.stream().flatMap((Gems share) -> {
-            Gems remaining = remove(share);
-            List<Solution> solutions = remaining.solutions(pirates, targetValue);
-            return solutions.stream()
-                .map(solution ->
-                    solution.add(share));
-        }).toList();
+    private Stream<Gem> viableGems(int shareValue, int accumulatedValue) {
+        return this.gems().stream()
+            .filter(gem ->
+                gem.value() + accumulatedValue <= shareValue
+            );
     }
 
-    private Gems remove(Gems gems) {
-        List<Gem> copy = new ArrayList<>(this.gems);
-        gems.gems.forEach(copy::remove);
-        return new Gems(copy);
-    }
-
-    public static final Comparator<Gem> COMPARATOR = Comparator.comparing(Gem::value).reversed();
-
-    private static List<Gem> entries(int[] values) {
-        return Arrays.stream(values).mapToObj(Gem::new).sorted().toList();
+    private Gems gemsAfterRemoving(Gems share) {
+        List<Gem> remaining = new ArrayList<>(this.gems);
+        share.gems.forEach(remaining::remove);
+        return new Gems(remaining);
     }
 
     @Override
