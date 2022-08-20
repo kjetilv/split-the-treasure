@@ -29,9 +29,16 @@ record Gems(List<Gem> gems) {
             return Stream.of(
                 new Solution(pirates, shareValue, Collections.singletonList(this)));
         }
-        return powerSet(new Gems(), shareValue).flatMap(share ->
-            gemsAfterRemoving(share).solutions(pirates, shareValue).map(solution ->
-                solution.with(share)));
+        return powerSet(new Gems(), shareValue)
+            .flatMap(share ->
+                gemsAfterRemoving(share)
+                    .solutions(pirates, shareValue)
+                    .map(solution ->
+                        solution.with(share)));
+    }
+
+    int value() {
+        return gems().stream().mapToInt(Gem::value).sum();
     }
 
     private Gems add(Gem gem) {
@@ -46,19 +53,18 @@ record Gems(List<Gem> gems) {
         return new Gems(newGems);
     }
 
-    private int value() {
-        return gems().stream().mapToInt(Gem::value).sum();
-    }
-
     private Stream<Gems> powerSet(Gems accumulated, int shareValue) {
         return viableGems(shareValue, accumulated.value())
-            .flatMap(gem -> {
-                Gems remainingGems = this.remove(gem);
-                Gems nextAccumulated = accumulated.add(gem);
-                return nextAccumulated.value() == shareValue
-                    ? Stream.of(nextAccumulated)
-                    : remainingGems.powerSet(nextAccumulated, shareValue);
-            });
+            .flatMap(gem ->
+                powerSet(accumulated, gem, shareValue));
+    }
+
+    private Stream<Gems> powerSet(Gems accumulated, Gem gem, int shareValue) {
+        Gems remainingGems = this.remove(gem);
+        Gems nextAccumulated = accumulated.add(gem);
+        return nextAccumulated.value() == shareValue
+            ? Stream.of(nextAccumulated)
+            : remainingGems.powerSet(nextAccumulated, shareValue);
     }
 
     private Stream<Gem> viableGems(int shareValue, int accumulatedValue) {
