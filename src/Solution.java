@@ -16,7 +16,7 @@ record Solution(int pirates, int shareValue, Gems loot, List<Gems> lootShare) {
     }
 
     Solution(int pirates, int share, List<Gems> parts) {
-        this(pirates, share, null, parts);
+        this(pirates, share, null, parts.stream().sorted().toList());
     }
 
     Solution verify() {

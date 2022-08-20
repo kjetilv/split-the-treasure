@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="bloomfilter-0.9.1-SNAPSHOT">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/bloomfilter-0.9.1-SNAPSHOT.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
