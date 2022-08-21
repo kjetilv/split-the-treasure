@@ -11,14 +11,13 @@ record Solution(Gems loot, int pirates, int shareValue, List<Gems> shares) {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "[[" + pirates + " shares] " + loot + " => " +
+        return getClass().getSimpleName() + "[/" + pirates + ": " +
                shares.stream().map(String::valueOf).collect(Collectors.joining(" ")) +
                "]";
     }
 
     static long count(Gems gems, int pirates, Consumer<Solution> forEach) {
         return gems.solutions(pirates)
-            .distinct()
             .map(Solution::verified)
             .peek(forEach)
             .count();

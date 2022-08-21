@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -44,31 +45,20 @@ record Gems(List<Gem> gems) implements Comparable<Gems> {
                 solution.forLoot(this));
     }
 
-    private Stream<Solution> solutions(
-        int pirates,
-        int shareValue,
-        Predicate<Solution> solutionTracker
-    ) {
+    private Stream<Solution> solutions(int pirates, int shareValue, Predicate<Solution> solutionTracker) {
         if (value() == shareValue) {
-            Solution solution =
-                new Solution(pirates, shareValue, Collections.singletonList(this));
-            return solutionTracker.test(solution)
-                ? Stream.of(solution)
-                : Stream.empty();
+            return Stream.of(new Solution(pirates, shareValue, Collections.singletonList(this)))
+                .filter(solutionTracker);
         }
         Predicate<Gems> subsetTracker = tracker();
         return powerSet(new Gems(), shareValue, subsetTracker)
-            .flatMap(share -> {
-                Gems subset = remove(share);
-                if (subsetTracker.test(subset)) {
-                    return subset
-                        .solutions(pirates, shareValue, solutionTracker)
-                        .map(solution ->
-                            solution.add(share));
-                } else {
-                    return Stream.empty();
-                }
-            });
+            .flatMap(share ->
+                Stream.of(remove(share))
+                    .filter(subsetTracker)
+                    .flatMap(subset ->
+                        subset.solutions(pirates, shareValue, solutionTracker))
+                    .map(solution ->
+                        solution.add(share)));
     }
 
     private Stream<Gems> powerSet(Gems accumulated, int shareValue, Predicate<Gems> subsetTracker) {
