@@ -1,16 +1,19 @@
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-record Solution(int pirates, int shareValue, Gems loot, List<Gems> lootShare) {
+record Solution(Gems loot, int pirates, int shareValue, List<Gems> shares) {
 
     Solution(int pirates, int share, List<Gems> parts) {
-        this(pirates, share, null, parts.stream().sorted().toList());
+        this(null, pirates, share, parts.stream().sorted().toList());
     }
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "[" + pirates + "p*" + shareValue + " " + loot + " => " + lootShare + "]";
+        return getClass().getSimpleName() + "[[" + pirates + " shares] " + loot + " => " +
+               shares.stream().map(String::valueOf).collect(Collectors.joining(" ")) +
+               "]";
     }
 
     static long count(Gems gems, int pirates, Consumer<Solution> forEach) {
@@ -22,9 +25,9 @@ record Solution(int pirates, int shareValue, Gems loot, List<Gems> lootShare) {
     }
 
     Solution verified() {
-        if (lootShare.size() != pirates ||
-            lootShare.stream().anyMatch(share -> share.value() != shareValue) ||
-            loot.value() != lootShare.stream().mapToInt(Gems::value).sum()
+        if (shares.size() != pirates ||
+            shares.stream().anyMatch(share -> share.value() != shareValue) ||
+            loot.value() != shares.stream().mapToInt(Gems::value).sum()
         ) {
             throw new IllegalStateException(this + " is not a valid solution");
         }
@@ -32,12 +35,12 @@ record Solution(int pirates, int shareValue, Gems loot, List<Gems> lootShare) {
     }
 
     Solution add(Gems share) {
-        List<Gems> copy = new ArrayList<>(lootShare);
+        List<Gems> copy = new ArrayList<>(shares);
         copy.add(share);
         return new Solution(pirates, shareValue, copy);
     }
 
     Solution forLoot(Gems loot) {
-        return new Solution(pirates, shareValue, loot, lootShare);
+        return new Solution(loot, pirates, shareValue, shares);
     }
 }

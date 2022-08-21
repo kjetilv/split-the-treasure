@@ -117,12 +117,12 @@ record Gems(List<Gem> gems) implements Comparable<Gems> {
 
     @Override
     public String toString() {
-        return "[" + value() + "/" + gems.size() + ": " +
+        return value() + "[" +
                gems.stream()
                    .map(Gem::toString)
                    .collect(
                        Collectors.joining(" ")) +
-               "]";
+               "](" + gems.size() + ")";
     }
 }
 

@@ -7,7 +7,8 @@ record Gem(int value) implements Comparable<Gem> {
         return COMPARATOR.compare(this, that);
     }
 
-    private static final Comparator<Gem> COMPARATOR = Comparator.comparing(Gem::value).reversed();
+    private static final Comparator<Gem> COMPARATOR =
+        Comparator.comparing(Gem::value).reversed();
 
     @Override
     public String toString() {

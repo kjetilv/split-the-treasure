@@ -9,25 +9,17 @@ import java.util.stream.IntStream;
 public final class Main {
 
     public static void main(String[] args) {
-        int range = 6;
-        Gems gems = new Gems(IntStream.range(0, range)
-            .map(i -> i + 1)
-            .flatMap(i ->
-                IntStream.range(0, 1 + range  - i)
-                    .map(j -> i))
-            .toArray());
-        int pirates = 7;
-        List<Solution> solutions = Collections.synchronizedList(new ArrayList<>());
-
         Consumer<Solution> print = System.out::println;
+
+        List<Solution> solutions = Collections.synchronizedList(new ArrayList<>());
         Consumer<Solution> add = solutions::add;
 
-        long solutionCount = Solution.count(gems, pirates, print.andThen(add));
+        long solutionCount = Solution.count(gems(), 7, print.andThen(add));
 
         if (solutionCount == 0) {
-            System.out.println("No solutions for " + pirates + " pirates: " + gems);
+            System.out.println("No solutions for " + 7 + " pirates: " + gems());
         } else {
-            System.out.println(solutionCount + " solutions for " + pirates + " pirates: " + gems);
+            System.out.println(solutionCount + " solutions for " + 7 + " pirates: " + gems());
             if (solutions.size() != new HashSet<>(solutions).size()) {
                 System.out.println();
                 System.out.println("Duplicate solutions:");
@@ -37,5 +29,15 @@ public final class Main {
                         System.out.println("  " + value.get(0) + " " + value.size()));
             }
         }
+    }
+
+    private static Gems gems() {
+        int range = 6;
+        return new Gems(IntStream.range(0, range)
+            .map(i -> i + 1)
+            .flatMap(i ->
+                IntStream.range(0, 1 + range  - i)
+                    .map(j -> i))
+            .toArray());
     }
 }
